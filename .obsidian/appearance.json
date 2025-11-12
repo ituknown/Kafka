@@ -1,0 +1,13 @@
+{
+  "accentColor": "",
+  "interfaceFontFamily": "Roboto Slab,IBM Plex Mono,Consolas",
+  "textFontFamily": "Roboto Slab,IBM Plex Mono,Consolas",
+  "monospaceFontFamily": "IBM Plex Mono,Menlo,JetBrains Mono,Consolas",
+  "nativeMenus": true,
+  "translucency": false,
+  "cssTheme": "GitHub Theme",
+  "baseFontSize": 16,
+  "baseFontSizeAction": false,
+  "theme": "moonstone",
+  "showRibbon": false
+}
