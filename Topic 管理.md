@@ -1,34 +1,65 @@
-启动 broker 时在 `server.properties` 中禁用自动创建 topic：
+
+# 禁用自动创建 topic
+
+如果当前运行的是 cluster 模式，在集群启动之前，需要将所有的选举节点都设置为紧张自动创建 topic。也就是在 `server.properties` 都做如下配置：
 
 ```properties
-# 确保在所有 Broker 的配置中设置此项
 auto.create.topics.enable=false
 ```
 
-另外可以在 broker 设置 topic 默认策略：
+所谓的选举节点，就是 `server.properties` 的指定 roles 为 controller 的节点（下面两种配置都表示 broker 是选举节点）：
 
-```properties
-# 保证高可用, 消息至少同步指定副本数, 才认为生产者消息投递 topic 成功, 建议至少 2 个
-min.insync.replicas=<num>
+```
+process.roles=controller
+process.roles=broker,controller
 ```
 
-创建 Topic 基本示例：
+如果是 standalone 模式，只需要在 `server.properties` 中添加该配置即可。
+
+# broker 设置副本默认策略
+
+在创建 topic 时，为了保证高可用，通常会设置多个消息副本（`--replication-factor <num>`），也就是说消息写入 Leader 之后会继续将消息同步到其他副本。默认情况下，消息写入 Leader 副本成功之后就认为生产者将消息投递 topic 成功了。
+
+而为了保证真正的高可用（防止消息丢失），在创建 topic 时通常还会指定最少同步副本数（`--config min.insync.replicas=<num>`）。该配置解决的问题是，当消息写入 Leader 副本之后，还要继续同步其他副本，只有当消息至少成功写入 `min.insync.replicas` 个副本（含 Leader）才认为消息写入 topic 成功。
+
+为了防止创建 topic 时遗漏，我们可以直接在 broker 的配置文件 `server.properties` 中设置默认的最小同步副本数：
+
+```properties
+min.insync.replicas=<num>
+```
+当然，如果是 cluster 模式，需要在所有的 broker 节点都设置。在 broker 级别设置，主要是增加一层保险而已。
+
+# 消息分区
+
+partitions 指的是 topic 消息的分区数。分区数越多，并发能力越强，当然要根据业务评估。
+
+replication-factor 指的是分区同步副本数。当 topic 根据 key 路由将消息写入某个分区，该分区就是 Leader 副本。该配置用于指定分区总副本（备份）数，除了 Leader 副本，其他都是 Follower 副本。生产者将消息投递到 topic 后，首先会将消息写入 Leader 副本，之后再同步到 Follower 副本。
+
+min.insync.replicas 指的是最少同步副本数。默认情况下，生产者将消息投递到 topic，写入 Leader 副本后就认为消息投递成功了，至于 Follower 副本有没有同步成功并不关心。该配置用于指定当消息写入分区后，最少同步指定个副本（含 Leader 副本），才认为消息投递 topic 成功，依此来达到真正的高可用。
+
+需要注意的是，min.insync.replicas 设置的最少同步副本数不能大于 replication-factor。
+
+# 创建 topic 语法
+
+通用的创建 topic 命令参数如下，可根据需要自行指定：
 
 ```bash
 kafka-topics.sh \
 --bootstrap-server [<broker:port>...] \
 --create \
 --topic <topic_name> \
---partitions <num> \                   # 分区数根据吞吐量评估, 通常至少为 3
---replication-factor <num> \           # 消息同步副本数, 生产环境建议至少为 3 个
---config min.insync.replicas=<num>     # 保证高可用, 消息至少同步指定副本数, 才认为生产者消息投递 topic 成功, 建议至少 2 个
+--partitions <num> \                   # 分区数, 根据吞吐量评估, 通常至少为 3
+--replication-factor <num> \           # 每个分区同步副本数, 生产环境建议至少为 3 个
+--config min.insync.replicas=<num>     # 消息最小同步分区副本数, 保证高可用, 消息至少同步指定个副本, 才认为生产者消息投递 topic 成功, 建议至少 2 个
 --config retention.ms=604800000 \      # 日志保留时常, -1 表示永久保留
 --config segment.bytes=1073741824      # 单日志分段最大大小(1GB)
 --config cleanup.policy=compact \      # 日志处理策略, 根据需求选择 delete 或 compact
 --config unclean.leader.election.enable=false  # 禁止不完整副本成为Leader
 ```
 
-常规业务（大多数业务）：
+下面是一些不同场景的推荐设置。
+
+- **常规业务（大多数业务）：**
 
 ```bash
 kafka-topics.sh --create \
@@ -38,7 +69,7 @@ kafka-topics.sh --create \
     --config min.insync.replicas=2
 ```
 
-关键数据（如金融、交易类），对数据一致性要求极高的场景：
+-  **关键数据（如金融、交易类），对数据一致性要求极高的场景：**
 
 ```bash
 kafka-topics.sh --create \
@@ -50,7 +81,7 @@ kafka-topics.sh --create \
     --config retention.ms=-1  # 永久保留
 ```
 
-日志、监控等：
+- **日志、监控类等：**
 
 ```bash
 kafka-topics.sh --create \
