@@ -120,7 +120,7 @@ Kafka 的日志清理像是图书管理员的整理习惯。
 
 # 6. 避免无限数量的小 topic
 
-Kafka 不是为了存几千个 topic 设计的。每个 topic * 每个 partition * 每个 replica 都要对应一个 log segment 目录，这会让 broker “目录爆炸”。
+Kafka 不是为了存几千个 topic 设计的。每个 topic ✖️ 每个 partition ✖️ 每个 replica 都要对应一个 log segment 目录，这会让 broker “目录爆炸”。
 
 行业经验：
 
@@ -145,7 +145,7 @@ auto.create.topics.enable=false
 常见格式：
 
 ```
-{业务域}.{事件名}[.v1]
+{业务域}.{事件名}[.版本]
 order.order_paid
 user.profile_updated.v1
 ```
