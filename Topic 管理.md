@@ -51,7 +51,7 @@ kafka-topics.sh \
 --partitions <num> \                   # 分区数, 根据吞吐量评估, 通常至少为 3
 --replication-factor <num> \           # 每个分区同步副本数, 生产环境建议至少为 3 个
 --config min.insync.replicas=<num>     # 消息最小同步分区副本数, 保证高可用, 消息至少同步指定个副本, 才认为生产者消息投递 topic 成功, 建议至少 2 个
---config retention.ms=604800000 \      # 日志保留时常, -1 表示永久保留
+--config retention.ms=604800000 \      # 日志保留时长(7天), -1 表示永久保留
 --config segment.bytes=1073741824      # 单日志分段最大大小(1GB)
 --config cleanup.policy=compact \      # 日志处理策略, 根据需求选择 delete 或 compact
 --config unclean.leader.election.enable=false  # 禁止不完整副本成为Leader
