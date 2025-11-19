@@ -116,126 +116,34 @@ log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_1/data
 **broker_2 配置文件：**
 
 ```properties
-# 节点角色
-# - controller: 元数据节点
-# - broker: 数据存储节点
-#
-# 这里由于机器原因, 每个节点都将承担两种角色使用.
-#
-# 如果机器足够多, 建议将 controller 和 broker 分开部署(尤其是生产环境).
-# controller 节点推荐至少部署 3 个
-# broker 节点也建议至少部署 3 个
 process.roles=broker,controller
-
-# 是否允许自动创建 topic
-# 如果想早点下班, 生产环境一定要设置 false
 auto.create.topics.enable=false
 
-# 节点ID
-# 集群中每个节点 ID 都是唯一的, 建议从第一个节点自增使用
 node.id=2
 
-# 将当前节点注册集群到集群
-# 用于告诉 broker 首次初始化去哪里获取集群元数据信息
-#
-# 这里建议将要所有 controller 节点都配置上去, 实际只要配置任意一个能正常通信的 controller 节点即可(主要是防止意外情况)
-#
-# 这里使用单机部署集群, 所以直接使用 localhost.
-# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
-
-# 配置真正的 controller 节点(选举节点)
-# controller.quorum.bootstrap.servers 只是初始化使用, 该配置才是用于指定集群运行时真正的选举节点
-# 一定要将所有 controller 节点都配置上去!
-# 另外配置格式为: 节点ID@IP:PORT
-#
-# 这里使用单机部署集群, 所以直接使用 localhost.
-# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
 
-# 监听本机端口通信协议
-#
-# 如果当前节点仅作为 broker 使用, 只需要配置一个 PLAINTEXT 即可
-# 如果当前节点仅作为 controller 使用, 只需要配置一个 CONTROLLER 即可
-# 但是如果当前节点同时承担两种角色, 那这里就要配置两个, 注意端口号不要冲突
-#
-# 除了这里列出的两种通信协议, 还可以配置 SSL 通信协议(端口不能被占用)
-# 具体可查询文档对 listener.security.protocol.map 配置项的说明
 listeners=PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093
-
-# 对外开放地址
-#
-# 每个通信协议真正用于可被外部访问的地址
-# 一定要设置为可被外部方式的地址(IP/域名)
 advertised.listeners=PLAINTEXT://172.21.11.1:29092,CONTROLLER://172.21.11.1:29093
 
-# 数据写入目录
-#
-# 最好使用机器绝对路径, 别使用相对路径
-# 如果使用相对路径, 数据将写入执行命令所在目录的相对目录
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_2/data
 ```
 
 **broker_3 配置文件：**
 
 ```properties
-# 节点角色
-# - controller: 元数据节点
-# - broker: 数据存储节点
-#
-# 这里由于机器原因, 每个节点都将承担两种角色使用.
-#
-# 如果机器足够多, 建议将 controller 和 broker 分开部署(尤其是生产环境).
-# controller 节点推荐至少部署 3 个
-# broker 节点也建议至少部署 3 个
 process.roles=broker,controller
-
-# 是否允许自动创建 topic
-# 如果想早点下班, 生产环境一定要设置 false
 auto.create.topics.enable=false
 
-# 节点ID
-# 集群中每个节点 ID 都是唯一的, 建议从第一个节点自增使用
-node.id=2
+node.id=3
 
-# 将当前节点注册集群到集群
-# 用于告诉 broker 首次初始化去哪里获取集群元数据信息
-#
-# 这里建议将要所有 controller 节点都配置上去, 实际只要配置任意一个能正常通信的 controller 节点即可(主要是防止意外情况)
-#
-# 这里使用单机部署集群, 所以直接使用 localhost.
-# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
-
-# 配置真正的 controller 节点(选举节点)
-# controller.quorum.bootstrap.servers 只是初始化使用, 该配置才是用于指定集群运行时真正的选举节点
-# 一定要将所有 controller 节点都配置上去!
-# 另外配置格式为: 节点ID@IP:PORT
-#
-# 这里使用单机部署集群, 所以直接使用 localhost.
-# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
 
-# 监听本机端口通信协议
-#
-# 如果当前节点仅作为 broker 使用, 只需要配置一个 PLAINTEXT 即可
-# 如果当前节点仅作为 controller 使用, 只需要配置一个 CONTROLLER 即可
-# 但是如果当前节点同时承担两种角色, 那这里就要配置两个, 注意端口号不要冲突
-#
-# 除了这里列出的两种通信协议, 还可以配置 SSL 通信协议(端口不能被占用)
-# 具体可查询文档对 listener.security.protocol.map 配置项的说明
 listeners=PLAINTEXT://0.0.0.0:39092,CONTROLLER://0.0.0.0:39093
-
-# 对外开放地址
-#
-# 每个通信协议真正用于可被外部访问的地址
-# 一定要设置为可被外部方式的地址(IP/域名)
 advertised.listeners=PLAINTEXT://172.21.11.1:39092,CONTROLLER://172.21.11.1:39093
 
-# 数据写入目录
-#
-# 最好使用机器绝对路径, 别使用相对路径
-# 如果使用相对路径, 数据将写入执行命令所在目录的相对目录
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_3/data
 ```
 
