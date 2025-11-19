@@ -5,7 +5,9 @@
 $ wget https://dlcdn.apache.org/kafka/4.1.1/kafka_2.13-4.1.1.tgz
 ```
 
-需要强调一点，kafka 与 JDK 版本有要求。如果机器安装的 JDK 不满足 kafka 运行要求，将无法正常运行，具体可以查看官方文档说明。
+| **说明**                                                                    |
+| :------------------------------------------------------------------------ |
+| 需要强调一点，kafka 与 JDK 版本有要求。如果机器安装的 JDK 不满足 kafka 运行要求，将无法正常运行，具体可以查看官方文档说明。 |
 
 kafka 在各自的版本文档中，都有对 JDK 要求的详细说明，比如最新版（v4.1.1）对 JDK 要求说明：[https://kafka.apache.org/documentation/#java](https://kafka.apache.org/documentation/#java)（所以我这里就按照要求使用 JDK21）。
 
@@ -40,7 +42,7 @@ $ mkdir standalone-cluster
     └── data
 ```
 
-**Note：** broker.properties 无需手动创建，直接将 KAFKA_HOME 下的配置文件拷贝过来即可。
+**备注：** broker.properties 无需手动创建，直接将 KAFKA_HOME 下的配置文件拷贝过来即可。
 
 ```bash
 $ cp $KAFKA_HOME/config/broker.properties broker_1/
@@ -119,14 +121,17 @@ log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_1/data
 process.roles=broker,controller
 auto.create.topics.enable=false
 
+# 注意节点ID
 node.id=2
 
 controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
 controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
 
+# 注意端口号
 listeners=PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093
 advertised.listeners=PLAINTEXT://172.21.11.1:29092,CONTROLLER://172.21.11.1:29093
 
+# 注意输出目录
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_2/data
 ```
 
@@ -136,14 +141,17 @@ log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_2/data
 process.roles=broker,controller
 auto.create.topics.enable=false
 
+# 注意节点ID
 node.id=3
 
 controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
 controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
 
+# 注意端口号
 listeners=PLAINTEXT://0.0.0.0:39092,CONTROLLER://0.0.0.0:39093
 advertised.listeners=PLAINTEXT://172.21.11.1:39092,CONTROLLER://172.21.11.1:39093
 
+# 注意输出目录
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_3/data
 ```
 
