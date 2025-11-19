@@ -1,5 +1,6 @@
+# 环境安装
 
-先到官网下载页面（[https://kafka.apache.org/downloads](https://kafka.apache.org/downloads)）下载想要部署的版本，这里以最新版（v4.1.1）为例：
+如果当前还没安装 kafka 环境，先到官网页面下载（[https://kafka.apache.org/downloads](https://kafka.apache.org/downloads)），这里以最新版（v4.1.1）为例：
 
 ```bash
 $ wget https://dlcdn.apache.org/kafka/4.1.1/kafka_2.13-4.1.1.tgz
@@ -7,9 +8,9 @@ $ wget https://dlcdn.apache.org/kafka/4.1.1/kafka_2.13-4.1.1.tgz
 
 | **说明**                                                                    |
 | :------------------------------------------------------------------------ |
-| 需要强调一点，kafka 与 JDK 版本有要求。如果机器安装的 JDK 不满足 kafka 运行要求，将无法正常运行，具体可以查看官方文档说明。 |
+| 需要强调一点，kafka 与 JDK 有版本要求。如果机器安装的 JDK 不满足 kafka 运行要求，将无法正常运行，具体可以查看官方文档说明。 |
 
-kafka 在各自的版本文档中，都有对 JDK 要求的详细说明，比如最新版（v4.1.1）对 JDK 要求说明：[https://kafka.apache.org/documentation/#java](https://kafka.apache.org/documentation/#java)（所以我这里就按照要求使用 JDK21）。
+kafka 各个版本，都有对应 Java 环境要求，比如最新版（v4.1.1）推荐使用 JDK21，所以我这里就按照要求使用 JDK21（[https://kafka.apache.org/documentation/#java](https://kafka.apache.org/documentation/#java)）。
 
 kafka 下载成功后，开始配置环境变量：
 
@@ -23,9 +24,13 @@ export KAFKA_HOME=/usr/local/lib/kafka/kafka_4_1_1
 export PATH=$KAFKA_HOME/bin:$PATH
 ```
 
+# 集群部署
+
 正常情况下，都是在多机器部署集群，每台机器都是一个 broker 节点。但是因为我只有一台机器，所以我就通过不同的配置文件来实现单机部署集群。
 
-在任意目录下创建几个（集群节点建议最少为 3 个）broker 文件夹，每个文件夹都作为一个 broker 节点使用，并在 broker 下创建一个 data 目录和 broker.properties 配置文件
+（在任意目录下）创建几个（集群节点建议最少为 3 个）broker 文件夹，每个文件夹都作为一个 broker 节点使用，并在各自的目录下创建一个 data 目录和 broker.properties 配置文件。
+
+文件结构如下：
 
 ```bash
 $ mkdir standalone-cluster
@@ -42,7 +47,7 @@ $ mkdir standalone-cluster
     └── data
 ```
 
-**备注：** broker.properties 无需手动创建，直接将 KAFKA_HOME 下的配置文件拷贝过来即可。
+broker.properties 无需手动创建，直接将 KAFKA_HOME 下的配置文件拷贝过来即可。
 
 ```bash
 $ cp $KAFKA_HOME/config/broker.properties broker_1/
@@ -52,7 +57,9 @@ $ cp $KAFKA_HOME/config/broker.properties broker_3/
 
 之后修改 broker.properties 配置文件。
 
-**broker_1 配置文件：**
+## broker 配置
+
+broker_1 基于原始配置文件，做如下修改：
 
 ```properties
 # 节点角色
@@ -109,6 +116,8 @@ advertised.listeners=PLAINTEXT://172.21.11.1:19092,CONTROLLER://172.21.11.1:1909
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_1/data
 ```
 
+broker_2、broker_3 配置文件与 broker_1 如出一辙，注意修改下 node.id、listeners 和 log.dirs。
+
 **broker_2 配置文件：**
 
 ```properties
@@ -149,7 +158,9 @@ advertised.listeners=PLAINTEXT://172.21.11.1:39092,CONTROLLER://172.21.11.1:3909
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_3/data
 ```
 
-配置文件都调整完成后，就可以生成 cluster id 了。只需要生成一次即可，实际可使用任意一台几点生成：
+## 生成 cluster id
+
+配置文件都调整完成后，就可以生成集群ID（cluster.id）了。cluster.id 就是一个 UUID，可以使用任意工具生成，不过 kafka 推荐使用 bin/kafka-storage.sh 生成 UUID。在任意一台 broker 节点执行如下命令生成 cluster.id：
 
 ```bash
 $ bin/kafka-storage.sh random-uuid
@@ -157,9 +168,18 @@ $ bin/kafka-storage.sh random-uuid
 i1KwsyLMSr6-Mfx6deLpkg # cluster id
 ```
 
-集群ID（cluster）生成成功后，就可以初始化 broker 元数据了：
 
-- broker_1：
+集群ID（cluster.id）生成成功后，就可以使用该 ID 初始化 broker 元数据了。
+
+## 初始化 broker 元数据
+
+| **注意**                                           |
+| :----------------------------------------------- |
+| broker 元数据只需要首次加入 cluster 之前初始化一次即可，后续启动无需重复初始化。 |
+
+使用前面生成的 cluster.id 挨个初始化 broker。
+
+**初始化 broker_1：**
 
 ```bash
 $ bin/kafka-storage.sh format \
@@ -180,7 +200,7 @@ $ ls standalone-cluster/broker_1/data/
 bootstrap.checkpoint  meta.properties
 ```
 
-其他两个 broker 也执行同样操作：
+其他两个 broker 也执行同样操作（cluster.id 不能变，调整下要使用的配置文件即可）：
 
 ```bash
 # broker_2
@@ -194,19 +214,19 @@ $ bin/kafka-storage.sh format \
 --config standalone-cluster/broker_3/broker.properties
 ```
 
-所有准备工作都完成后，就可以启动节点了：
+## 启动 broker
+
+所有准备工作都完成后，就可以启动 broker 节点了，命令如下：
 
 ```bash
 $ bin/kafka-server-start.sh standalone-cluster/broker_1/broker.properties
 ```
 
-或加上 -daemon 参数后台运行：
+默认情况下，broker 是以前台运行，使用 CTRL-C 关闭日志输出就等于关闭 broker 节点。如果想在后台运行 broker 服务，可以加上 -daemon 参数指定以守护进程运行：
 
 ```bash
 $ bin/kafka-server-start.sh -daemon standalone-cluster/broker_1/broker.properties
 ```
-
-因为演示使用，前台运行即可。
 
 输出示例：
 
@@ -268,11 +288,13 @@ $ bin/kafka-server-start.sh standalone-cluster/broker_3/broker.properties
 [2025-11-19 19:33:48,048] INFO [RaftManager id=1] Updated in-memory voters from VoterSet(voters={1=VoterNode(voterKey=ReplicaKey(id=1, directoryId=mZHZbZnYrI9KAJHHctSxeg), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:19093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 2=VoterNode(voterKey=ReplicaKey(id=2, directoryId=n_pijmdI0n3Pyy6bjfZbGw), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:29093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 3=VoterNode(voterKey=ReplicaKey(id=3, directoryId=<undefined>), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=/172.21.11.1:39093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:0])}) to VoterSet(voters={1=VoterNode(voterKey=ReplicaKey(id=1, directoryId=mZHZbZnYrI9KAJHHctSxeg), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:19093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 2=VoterNode(voterKey=ReplicaKey(id=2, directoryId=n_pijmdI0n3Pyy6bjfZbGw), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:29093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 3=VoterNode(voterKey=ReplicaKey(id=3, directoryId=DSLQTzPiAuGqiqv4TIudoQ), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:39093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1])}) (org.apache.kafka.raft.internals.UpdateVoterHandler)
 ```
 
-正常启动，就大功告成了！
+所有 broker 节点都正常启动，就大功告成了！
+
+# 创建 topic
 
 ```bash
 bin/kafka-topics.sh \
---bootstrap-server 172.21.11.119092,172.21.11.129092 \
+--bootstrap-server 172.21.11.1:19092,172.21.11.1:29092 \
 --create \
 --topic order.paid \
 --partitions 3 \
@@ -296,20 +318,23 @@ Created topic order.paid. <== topic 创建成功
 
 也就是说创建 topic 时 `order.paid` 和 `order_paid` 可能会生成相同的 metric 名，造成“撞名”。这并不是什么错误，仅仅只是友善的提示你不要同时混用 `.` 和 `-`，尽量保持统一的命名规范。
 
-查看已创建的 topic：
+# 列出所有 topic
 
 ```bash
 $ bin/kafka-topics.sh \
---bootstrap-server 172.21.11.119092,172.21.11.129092 \
+--bootstrap-server 172.21.11.1:19092,172.21.11.1:29092 \
 --list
 
 order.paid
 ```
 
-查看 topic 相信信息：
+# 查看 topic 详细信息
 
 ```bash
-$ bin/kafka-topics.sh --bootstrap-server 172.21.11.119092,172.21.11.129092 --topic order.paid --describe
+$ bin/kafka-topics.sh \
+--bootstrap-server 172.21.11.1:19092,172.21.11.1:29092 \
+--topic order.paid \
+--describe
 
 Topic: order.paid	TopicId: tVFQoD0UR4CvWrIgLU0bDA	PartitionCount: 3	ReplicationFactor: 3	Configs: min.insync.replicas=3,cleanup.policy=delete,segment.bytes=1073741824,retention.ms=2592000000,unclean.leader.election.enable=false
 	Topic: order.paid	Partition: 0	Leader: 3	Replicas: 3,1,2	Isr: 3,1,2	Elr: 	LastKnownElr:
@@ -317,8 +342,11 @@ Topic: order.paid	TopicId: tVFQoD0UR4CvWrIgLU0bDA	PartitionCount: 3	ReplicationF
 	Topic: order.paid	Partition: 2	Leader: 2	Replicas: 2,3,1	Isr: 2,3,1	Elr: 	LastKnownElr:
 ```
 
-删除 topic：
+# 删除 topic
 
 ```bash
-$ bin/kafka-topics.sh --bootstrap-server 172.21.11.119092,172.21.11.129092 --delete --topic order.paid
+$ bin/kafka-topics.sh \
+--bootstrap-server 172.21.11.1:19092,172.21.11.1:29092 \
+--delete \
+--topic order.paid
 ```
