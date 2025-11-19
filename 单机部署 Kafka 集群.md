@@ -22,22 +22,34 @@ process.roles=broker,controller
 # 是否允许自动创建 topic
 auto.create.topics.enable=false
 
-# The node id associated with this instance's roles
+# 节点ID
 node.id=1
 
-# Information about the KRaft controller quorum.
+# 控制节点, 用于告诉 Broker 首次启动时去哪里获取集群元数据信息. 
+# 等同于 --bootstrap-server=
+#
+# 这里使用单机部署集群, 所以直接使用 localhost.
+# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
 
-# 可投票节点
+# 真正的控制节点
+#
+# 这里使用单机部署集群, 所以直接使用 localhost.
+# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
 
 # 监听本机端口
 listeners=PLAINTEXT://0.0.0.0:19092,CONTROLLER://0.0.0.0:19093
 
 # 对外开放地址
+#
+# 这里使用单机部署集群, 所以直接使用 localhost.
+# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
 advertised.listeners=PLAINTEXT://localhost:19092,CONTROLLER://localhost:19093
 
-# A comma separated list of directories under which to store log files
+# 日志输入地址
+# 推荐使用绝对路径, 别使用相对路径
+# 如果配置为绝对路径, 输出的日志地址会是基于执行命令的相对路径
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_1/data
 ```
 
