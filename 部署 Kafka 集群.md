@@ -78,19 +78,13 @@ node.id=1
 # 用于告诉 broker 首次初始化去哪里获取集群元数据信息
 #
 # 这里建议将要所有 controller 节点都配置上去, 实际只要配置任意一个能正常通信的 controller 节点即可(主要是防止意外情况)
-#
-# 这里使用单机部署集群, 所以直接使用 localhost.
-# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
-controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
+controller.quorum.bootstrap.servers=172.21.11.119093,172.21.11.129093,172.21.11.139093
 
 # 配置真正的 controller 节点(选举节点)
 # controller.quorum.bootstrap.servers 只是初始化使用, 该配置才是用于指定集群运行时真正的选举节点
 # 一定要将所有 controller 节点都配置上去!
 # 另外配置格式为: 节点ID@IP:PORT
-#
-# 这里使用单机部署集群, 所以直接使用 localhost.
-# 如果是多机器部署, 一定要将 localhost 替换为机器可对外访问的 ip 地址
-controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
+controller.quorum.voters=1@172.21.11.119093,2@172.21.11.129093,3@172.21.11.139093
 
 # 监听本机端口通信协议
 #
@@ -100,7 +94,7 @@ controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
 #
 # 除了这里列出的两种通信协议, 还可以配置 SSL 通信协议(端口不能被占用)
 # 具体可查询文档对 listener.security.protocol.map 配置项的说明
-listeners=PLAINTEXT://0.0.0.0:19092,CONTROLLER://0.0.0.0:19093
+listeners=PLAINTEXT://:19092,CONTROLLER://:19093
 
 # 对外开放地址
 #
@@ -124,11 +118,11 @@ auto.create.topics.enable=false
 # 注意节点ID
 node.id=2
 
-controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
-controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
+controller.quorum.bootstrap.servers=172.21.11.119093,172.21.11.129093,172.21.11.139093
+controller.quorum.voters=1@172.21.11.119093,2@172.21.11.129093,3@172.21.11.139093
 
 # 注意端口号
-listeners=PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093
+listeners=PLAINTEXT://:29092,CONTROLLER://:29093
 advertised.listeners=PLAINTEXT://172.21.11.1:29092,CONTROLLER://172.21.11.1:29093
 
 # 注意输出目录
@@ -144,11 +138,11 @@ auto.create.topics.enable=false
 # 注意节点ID
 node.id=3
 
-controller.quorum.bootstrap.servers=localhost:19093,localhost:29093,localhost:39093
-controller.quorum.voters=1@localhost:19093,2@localhost:29093,3@localhost:39093
+controller.quorum.bootstrap.servers=172.21.11.119093,172.21.11.129093,172.21.11.139093
+controller.quorum.voters=1@172.21.11.119093,2@172.21.11.129093,3@172.21.11.139093
 
 # 注意端口号
-listeners=PLAINTEXT://0.0.0.0:39092,CONTROLLER://0.0.0.0:39093
+listeners=PLAINTEXT://:39092,CONTROLLER://:39093
 advertised.listeners=PLAINTEXT://172.21.11.1:39092,CONTROLLER://172.21.11.1:39093
 
 # 注意输出目录
@@ -260,7 +254,7 @@ $ bin/kafka-server-start.sh standalone-cluster/broker_3/broker.properties
 
 ```bash
 bin/kafka-topics.sh \
---bootstrap-server localhost:19092,localhost:29092 \
+--bootstrap-server 172.21.11.119092,172.21.11.129092 \
 --create \
 --topic order.paid \
 --partitions 3 \
@@ -288,7 +282,7 @@ Created topic order.paid. <== topic 创建成功
 
 ```bash
 $ bin/kafka-topics.sh \
---bootstrap-server localhost:19092,localhost:29092 \
+--bootstrap-server 172.21.11.119092,172.21.11.129092 \
 --list
 
 order.paid
@@ -297,7 +291,7 @@ order.paid
 查看 topic 相信信息：
 
 ```bash
-$ bin/kafka-topics.sh --bootstrap-server localhost:19092,localhost:29092 --topic order.paid --describe
+$ bin/kafka-topics.sh --bootstrap-server 172.21.11.119092,172.21.11.129092 --topic order.paid --describe
 
 Topic: order.paid	TopicId: tVFQoD0UR4CvWrIgLU0bDA	PartitionCount: 3	ReplicationFactor: 3	Configs: min.insync.replicas=3,cleanup.policy=delete,segment.bytes=1073741824,retention.ms=2592000000,unclean.leader.election.enable=false
 	Topic: order.paid	Partition: 0	Leader: 3	Replicas: 3,1,2	Isr: 3,1,2	Elr: 	LastKnownElr:
@@ -308,5 +302,5 @@ Topic: order.paid	TopicId: tVFQoD0UR4CvWrIgLU0bDA	PartitionCount: 3	ReplicationF
 删除 topic：
 
 ```bash
-$ bin/kafka-topics.sh --bootstrap-server localhost:19092,localhost:29092 --delete --topic order.paid
+$ bin/kafka-topics.sh --bootstrap-server 172.21.11.119092,172.21.11.129092 --delete --topic order.paid
 ```
