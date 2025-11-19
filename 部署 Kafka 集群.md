@@ -59,6 +59,8 @@ $ cp $KAFKA_HOME/config/broker.properties broker_3/
 
 ## broker 配置
 
+需要特别注意的是，集群中每个 broker 都是一个节点，同一个集群的 node.id 必须是唯一的。实际配置时建议从 1 开始自增。
+
 broker_1 基于原始配置文件，做如下修改：
 
 ```properties
@@ -78,20 +80,20 @@ process.roles=broker,controller
 auto.create.topics.enable=false
 
 # 节点ID
-# 集群中每个节点 ID 都是唯一的, 建议从第一个节点自增使用
+# 集群中每个节点 ID 都是唯一的, 建议从 1 开始自增
 node.id=1
 
 # 将当前节点注册集群到集群
 # 用于告诉 broker 首次初始化去哪里获取集群元数据信息
 #
 # 这里建议将要所有 controller 节点都配置上去, 实际只要配置任意一个能正常通信的 controller 节点即可(主要是防止意外情况)
-controller.quorum.bootstrap.servers=172.21.11.119093,172.21.11.129093,172.21.11.139093
+controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
 
 # 配置真正的 controller 节点(选举节点)
 # controller.quorum.bootstrap.servers 只是初始化使用, 该配置才是用于指定集群运行时真正的选举节点
 # 一定要将所有 controller 节点都配置上去!
 # 另外配置格式为: 节点ID@IP:PORT
-controller.quorum.voters=1@172.21.11.119093,2@172.21.11.129093,3@172.21.11.139093
+controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
 
 # 监听本机端口通信协议
 #
@@ -127,8 +129,8 @@ auto.create.topics.enable=false
 # 注意节点ID
 node.id=2
 
-controller.quorum.bootstrap.servers=172.21.11.119093,172.21.11.129093,172.21.11.139093
-controller.quorum.voters=1@172.21.11.119093,2@172.21.11.129093,3@172.21.11.139093
+controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
+controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
 
 # 注意端口号
 listeners=PLAINTEXT://:29092,CONTROLLER://:29093
@@ -147,8 +149,8 @@ auto.create.topics.enable=false
 # 注意节点ID
 node.id=3
 
-controller.quorum.bootstrap.servers=172.21.11.119093,172.21.11.129093,172.21.11.139093
-controller.quorum.voters=1@172.21.11.119093,2@172.21.11.129093,3@172.21.11.139093
+controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
+controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
 
 # 注意端口号
 listeners=PLAINTEXT://:39092,CONTROLLER://:39093
