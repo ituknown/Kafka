@@ -212,8 +212,11 @@ $ bin/kafka-server-start.sh -daemon standalone-cluster/broker_1/broker.propertie
 
 ```
 ...
-[2025-11-19 10:38:27,861] INFO [RaftManager id=1] Node 3 disconnected. (org.apache.kafka.clients.NetworkClient)
-[2025-11-19 10:38:27,862] WARN [RaftManager id=1] Connection to node 3 (localhost/127.0.0.1:39093) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)
+[2025-11-19 19:30:59,102] INFO [RaftManager id=1] Node 2 disconnected. (org.apache.kafka.clients.NetworkClient)
+[2025-11-19 19:30:59,102] WARN [RaftManager id=1] Connection to node 2 (/172.21.11.1:29093) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)
+[2025-11-19 19:30:59,187] INFO [MetadataLoader id=1] initializeNewPublishers: the loader is still catching up because we still don't know the high water mark yet. (org.apache.kafka.image.loader.MetadataLoader)
+[2025-11-19 19:30:59,287] INFO [MetadataLoader id=1] initializeNewPublishers: the loader is still catching up because we still don't know the high water mark yet. (org.apache.kafka.image.loader.MetadataLoader)
+[2025-11-19 19:30:59,388] INFO [MetadataLoader id=1] initializeNewPublishers: the loader is still catching up because we still don't know the high water mark yet. (org.apache.kafka.image.loader.MetadataLoader)
 ```
 
 现在只启动一个 broker 节点，会提示其他节点还没找到。继续启动 broker_2：
@@ -222,15 +225,23 @@ $ bin/kafka-server-start.sh -daemon standalone-cluster/broker_1/broker.propertie
 $ bin/kafka-server-start.sh standalone-cluster/broker_2/broker.properties
 
 ...
-[2025-11-19 10:37:58,236] INFO [BrokerServer id=2] Waiting for all of the authorizer futures to be completed (kafka.server.BrokerServer)
-[2025-11-19 10:37:58,236] INFO [BrokerServer id=2] Finished waiting for all of the authorizer futures to be completed (kafka.server.BrokerServer)
-[2025-11-19 10:37:58,236] INFO [BrokerServer id=2] Waiting for all of the SocketServer Acceptors to be started (kafka.server.BrokerServer)
-[2025-11-19 10:37:58,236] INFO [BrokerServer id=2] Finished waiting for all of the SocketServer Acceptors to be started (kafka.server.BrokerServer)
-[2025-11-19 10:37:58,236] INFO [BrokerServer id=2] Transition from STARTING to STARTED (kafka.server.BrokerServer)
-[2025-11-19 10:37:58,237] INFO Kafka version: 4.1.1 (org.apache.kafka.common.utils.AppInfoParser)
-[2025-11-19 10:37:58,237] INFO Kafka commitId: be816b82d25370ce (org.apache.kafka.common.utils.AppInfoParser)
-[2025-11-19 10:37:58,237] INFO Kafka startTimeMs: 1763519878236 (org.apache.kafka.common.utils.AppInfoParser)
-[2025-11-19 10:37:58,238] INFO [KafkaRaftServer nodeId=2] Kafka Server started (kafka.server.KafkaRaftServer
+[2025-11-19 19:32:25,238] INFO [MetadataLoader id=2] InitializeNewPublishers: initializing BrokerRegistrationTracker(id=2) with a snapshot at offset 8 (org.apache.kafka.image.loader.MetadataLoader)
+[2025-11-19 19:32:25,240] INFO [ControllerRegistrationManager id=2 incarnation=W17irwObTtK09M02miaOBA] Our registration has been persisted to the metadata log. (kafka.server.ControllerRegistrationManager)
+[2025-11-19 19:32:25,241] INFO [BrokerServer id=2] Waiting for the broker to be unfenced (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,277] INFO [BrokerLifecycleManager id=2] The broker has been unfenced. Transitioning from RECOVERY to RUNNING. (kafka.server.BrokerLifecycleManager)
+[2025-11-19 19:32:25,277] INFO [BrokerServer id=2] Finished waiting for the broker to be unfenced (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,278] INFO authorizerStart completed for endpoint PLAINTEXT. Endpoint is now READY. (org.apache.kafka.server.network.EndpointReadyFutures)
+[2025-11-19 19:32:25,278] INFO [SocketServer listenerType=BROKER, nodeId=2] Enabling request processing. (kafka.network.SocketServer)
+[2025-11-19 19:32:25,279] INFO Awaiting socket connections on 0.0.0.0:29092. (kafka.network.DataPlaneAcceptor)
+[2025-11-19 19:32:25,280] INFO [BrokerServer id=2] Waiting for all of the authorizer futures to be completed (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,280] INFO [BrokerServer id=2] Finished waiting for all of the authorizer futures to be completed (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,281] INFO [BrokerServer id=2] Waiting for all of the SocketServer Acceptors to be started (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,281] INFO [BrokerServer id=2] Finished waiting for all of the SocketServer Acceptors to be started (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,281] INFO [BrokerServer id=2] Transition from STARTING to STARTED (kafka.server.BrokerServer)
+[2025-11-19 19:32:25,281] INFO Kafka version: 4.1.1 (org.apache.kafka.common.utils.AppInfoParser)
+[2025-11-19 19:32:25,281] INFO Kafka commitId: be816b82d25370ce (org.apache.kafka.common.utils.AppInfoParser)
+[2025-11-19 19:32:25,282] INFO Kafka startTimeMs: 1763551945281 (org.apache.kafka.common.utils.AppInfoParser)
+[2025-11-19 19:32:25,283] INFO [KafkaRaftServer nodeId=2] Kafka Server started (kafka.server.KafkaRaftServer)
 ```
 
 此时 broker_1 的输出日志信息就变了：
@@ -248,6 +259,13 @@ $ bin/kafka-server-start.sh standalone-cluster/broker_2/broker.properties
 
 ```bash
 $ bin/kafka-server-start.sh standalone-cluster/broker_3/broker.properties
+```
+
+此时 broker_1 输出信息：
+
+```
+...
+[2025-11-19 19:33:48,048] INFO [RaftManager id=1] Updated in-memory voters from VoterSet(voters={1=VoterNode(voterKey=ReplicaKey(id=1, directoryId=mZHZbZnYrI9KAJHHctSxeg), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:19093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 2=VoterNode(voterKey=ReplicaKey(id=2, directoryId=n_pijmdI0n3Pyy6bjfZbGw), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:29093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 3=VoterNode(voterKey=ReplicaKey(id=3, directoryId=<undefined>), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=/172.21.11.1:39093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:0])}) to VoterSet(voters={1=VoterNode(voterKey=ReplicaKey(id=1, directoryId=mZHZbZnYrI9KAJHHctSxeg), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:19093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 2=VoterNode(voterKey=ReplicaKey(id=2, directoryId=n_pijmdI0n3Pyy6bjfZbGw), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:29093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1]), 3=VoterNode(voterKey=ReplicaKey(id=3, directoryId=DSLQTzPiAuGqiqv4TIudoQ), listeners=Endpoints(endpoints={ListenerName(CONTROLLER)=172.21.11.1/<unresolved>:39093}), supportedKRaftVersion=SupportedVersionRange[min_version:0, max_version:1])}) (org.apache.kafka.raft.internals.UpdateVoterHandler)
 ```
 
 正常启动，就大功告成了！
