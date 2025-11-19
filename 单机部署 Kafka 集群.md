@@ -102,7 +102,12 @@ $ bin/kafka-server-start.sh standalone-cluster/broker_2/broker.properties
 
 ```bash
 $ bin/kafka-server-start.sh standalone-cluster/broker_3/broker.properties
+
+# 或后台运行
+
+$ bin/kafka-server-start.sh -daemon standalone-cluster/broker_3/broker.properties
 ```
+
 
 ```plaintext
 ...
