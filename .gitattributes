@@ -1,6 +1,5 @@
 # 设置默认行为
 * text=auto
-*.md text eol=lf
 
 # 强制 LF 结尾的源代码文件
 *.java text eol=lf

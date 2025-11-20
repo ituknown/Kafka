@@ -1,6 +1,6 @@
 {
   "livePreview": true,
-  "readableLineLength": false,
+  "readableLineLength": true,
   "strictLineBreaks": true,
   "propertiesInDocument": "visible",
   "spellcheck": true,
