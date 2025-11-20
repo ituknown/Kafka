@@ -6,13 +6,11 @@
 $ wget https://dlcdn.apache.org/kafka/4.1.1/kafka_2.13-4.1.1.tgz
 ```
 
-| **说明**                                                                    |
-| :------------------------------------------------------------------------ |
-| 需要强调一点，kafka 与 JDK 有版本要求。如果机器安装的 JDK 不满足 kafka 运行要求，将无法正常运行，具体可以查看官方文档说明。 |
+| **说明**                                                                                                                                                                                         |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 需要强调一点，kafka 对 Java 环境有版本要求，如果当前 Java 环境不满足 kafka 运行要求，将无法正常启动，具体可以查看官方文档说明。比如 v4.1.1 推荐使用 JDK21：[https://kafka.apache.org/documentation/#java](https://kafka.apache.org/documentation/#java)。 |
 
-kafka 各个版本，都有对应 Java 环境要求，比如最新版（v4.1.1）推荐使用 JDK21，所以我这里就按照要求使用 JDK21（[https://kafka.apache.org/documentation/#java](https://kafka.apache.org/documentation/#java)）。
-
-kafka 下载成功后，开始配置环境变量：
+kafka 下载安装成功后，开始配置环境变量：
 
 ```bash
 # Java
@@ -28,9 +26,7 @@ export PATH=$KAFKA_HOME/bin:$PATH
 
 正常情况下，都是在多机器部署集群，每台机器都是一个 broker 节点。但是因为我只有一台机器，所以我就通过不同的配置文件来实现单机部署集群。
 
-（在任意目录下）创建几个（集群节点建议最少为 3 个）broker 文件夹，每个文件夹都作为一个 broker 节点使用，并在各自的目录下创建一个 data 目录和 broker.properties 配置文件。
-
-文件结构如下：
+（在任意目录下）创建几个（集群节点建议最少为 3 个）broker 文件夹，每个文件夹都当做一个 broker 配置环境。之后在各自的配置环境下分别创建一个 data 目录和 broker.properties 配置文件。最终环境结构如下：
 
 ```bash
 $ mkdir standalone-cluster
@@ -83,6 +79,24 @@ auto.create.topics.enable=false
 # 集群中每个节点 ID 都是唯一的, 建议从 1 开始自增
 node.id=1
 
+# 监听本机端口通信协议
+# 这里指定的端口就是服务启动端口
+#
+# 如果当前节点仅作为 broker 使用, 只需要配置一个 PLAINTEXT 即可
+# 如果当前节点仅作为 controller 使用, 只需要配置一个 CONTROLLER 即可
+# 但是如果当前节点同时承担两种角色, 那这里就要配置两个, 注意端口号不要冲突
+#
+# 除了这里列出的两种通信协议, 还可以配置 SSL 通信协议(注意端口不要冲突)
+# 具体可查询文档对 listener.security.protocol.map 配置项的说明
+listeners=PLAINTEXT://:19092,CONTROLLER://:19093
+
+# 对外开放地址
+#
+# 端口就是前面配置的监听端口
+#
+# 每个通信协议真正用于可被外部访问的地址, 一定要设置为可被外部方式的地址(IP/域名)
+advertised.listeners=PLAINTEXT://172.21.11.1:19092,CONTROLLER://172.21.11.1:19093
+
 # 将当前节点注册集群到集群
 # 用于告诉 broker 首次初始化去哪里获取集群元数据信息
 #
@@ -94,22 +108,6 @@ controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.1
 # 一定要将所有 controller 节点都配置上去!
 # 另外配置格式为: 节点ID@IP:PORT
 controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
-
-# 监听本机端口通信协议
-#
-# 如果当前节点仅作为 broker 使用, 只需要配置一个 PLAINTEXT 即可
-# 如果当前节点仅作为 controller 使用, 只需要配置一个 CONTROLLER 即可
-# 但是如果当前节点同时承担两种角色, 那这里就要配置两个, 注意端口号不要冲突
-#
-# 除了这里列出的两种通信协议, 还可以配置 SSL 通信协议(端口不能被占用)
-# 具体可查询文档对 listener.security.protocol.map 配置项的说明
-listeners=PLAINTEXT://:19092,CONTROLLER://:19093
-
-# 对外开放地址
-#
-# 每个通信协议真正用于可被外部访问的地址
-# 一定要设置为可被外部方式的地址(IP/域名)
-advertised.listeners=PLAINTEXT://172.21.11.1:19092,CONTROLLER://172.21.11.1:19093
 
 # 数据写入目录
 #
@@ -129,12 +127,12 @@ auto.create.topics.enable=false
 # 注意节点ID
 node.id=2
 
-controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
-controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
-
 # 注意端口号
 listeners=PLAINTEXT://:29092,CONTROLLER://:29093
 advertised.listeners=PLAINTEXT://172.21.11.1:29092,CONTROLLER://172.21.11.1:29093
+
+controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
+controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
 
 # 注意输出目录
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_2/data
@@ -149,12 +147,12 @@ auto.create.topics.enable=false
 # 注意节点ID
 node.id=3
 
-controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
-controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
-
 # 注意端口号
 listeners=PLAINTEXT://:39092,CONTROLLER://:39093
 advertised.listeners=PLAINTEXT://172.21.11.1:39092,CONTROLLER://172.21.11.1:39093
+
+controller.quorum.bootstrap.servers=172.21.11.1:19093,172.21.11.1:29093,172.21.11.1:39093
+controller.quorum.voters=1@172.21.11.1:19093,2@172.21.11.1:29093,3@172.21.11.1:39093
 
 # 注意输出目录
 log.dirs=/usr/local/lib/kafka/kafka_4_1_1/standalone-cluster/broker_3/data
@@ -200,6 +198,48 @@ Formatting metadata directory /usr/local/lib/kafka/kafka_4_1_1/standalone-cluste
 ```bash
 $ ls standalone-cluster/broker_1/data/
 bootstrap.checkpoint  meta.properties
+```
+
+bootstrap.checkpoint 是集群元数据日志的初始快照，包含了节点启动时必须知道的最基础配置信息。是一个二进制文件，可以使用 hexdump 查看：
+
+```bash
+$ hexdump -C bootstrap.checkpoint
+
+00000000  00 00 00 00 00 00 00 00  00 00 00 47 00 00 00 00  |...........G....|
+00000010  02 13 77 76 1f 00 20 00  00 00 00 00 00 01 9a 9b  |..wv.. .........|
+00000020  dd cf 26 00 00 01 9a 9b  dd cf 26 ff ff ff ff ff  |..&.......&.....|
+00000030  ff ff ff ff ff ff ff ff  ff 00 00 00 01 2a 00 00  |.............*..|
+00000040  00 08 00 00 00 03 16 00  00 00 00 00 00 00 00 00  |................|
+00000050  00 00 00 00 00 00 00 00  00 00 01 00 00 00 b9 00  |................|
+00000060  00 00 00 02 02 26 7c 9b  00 00 00 00 00 03 00 00  |.....&|.........|
+00000070  01 9a 9b dd cf 3d 00 00  01 9a 9b dd cf 3d ff ff  |.....=.......=..|
+00000080  ff ff ff ff ff ff ff ff  ff ff ff ff 00 00 00 04  |................|
+00000090  3a 00 00 00 01 2e 01 0c  00 11 6d 65 74 61 64 61  |:.........metada|
+000000a0  74 61 2e 76 65 72 73 69  6f 6e 00 1b 00 00 5a 00  |ta.version....Z.|
+000000b0  00 02 01 4e 01 0c 00 21  65 6c 69 67 69 62 6c 65  |...N...!eligible|
+000000c0  2e 6c 65 61 64 65 72 2e  72 65 70 6c 69 63 61 73  |.leader.replicas|
+000000d0  2e 76 65 72 73 69 6f 6e  00 01 00 00 34 00 00 04  |.version....4...|
+000000e0  01 28 01 0c 00 0e 67 72  6f 75 70 2e 76 65 72 73  |.(....group.vers|
+000000f0  69 6f 6e 00 01 00 00 40  00 00 06 01 34 01 0c 00  |ion....@....4...|
+00000100  14 74 72 61 6e 73 61 63  74 69 6f 6e 2e 76 65 72  |.transaction.ver|
+00000110  73 69 6f 6e 00 02 00 00  00 00 00 00 00 00 00 05  |sion............|
+00000120  00 00 00 3f 00 00 00 00  02 b5 d9 01 d7 00 20 00  |...?.......... .|
+00000130  00 00 00 00 00 01 9a 9b  dd cf 3e 00 00 01 9a 9b  |..........>.....|
+00000140  dd cf 3e ff ff ff ff ff  ff ff ff ff ff ff ff ff  |..>.............|
+00000150  ff 00 00 00 01 1a 00 00  00 08 00 00 00 04 06 00  |................|
+00000160  00 00 00                                          |...|
+00000163
+```
+
+meta.properties 是一个普通文本文件，用于存储集群ID、Broker 节点ID 等基本信息：
+
+```bash
+$ cat meta.properties
+
+cluster.id=i1KwsyLMSr6-Mfx6deLpkg
+directory.id=mZHZbZnYrI9KAJHHctSxeg
+node.id=1
+version=1
 ```
 
 其他两个 broker 也执行同样操作（cluster.id 不能变，调整下要使用的配置文件即可）：
@@ -291,6 +331,26 @@ $ bin/kafka-server-start.sh standalone-cluster/broker_3/broker.properties
 ```
 
 所有 broker 节点都正常启动，就大功告成了！
+
+现在可以使用 jps 命令查看下进程信息：
+
+```bash
+$ jps -lm | grep -v jps
+
+16328 kafka.Kafka standalone-cluster/broker_1/broker.properties
+16810 kafka.Kafka standalone-cluster/broker_3/broker.properties
+17278 kafka.Kafka standalone-cluster/broker_2/broker.properties
+```
+
+还能进一步查看进程使用的端口信息（以 broker_1 进程为例）：
+
+```bash
+$ lsof -nP -p 16328 | grep LISTEN
+
+java    16328 root  116u     IPv6              41093       0t0     TCP *:40263 (LISTEN)
+java    16328 root  137u     IPv6              39508       0t0     TCP *:19093 (LISTEN)
+java    16328 root  168u     IPv6              39512       0t0     TCP *:19092 (LISTEN)
+```
 
 # 创建 topic
 
