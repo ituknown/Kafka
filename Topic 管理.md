@@ -136,9 +136,9 @@ kafka-topics.sh --create \
 
 简单地说就是：
 
-```
-cleanup.policy=delete：按时间/空间删
-cleanup.policy=compact：按 key 保留最新版本
+```properties
+cleanup.policy=delete  # 按时间/空间删
+cleanup.policy=compact # 按 key 保留最新版本
 ```
 
 另外，也可以设置成 `delete,compact` 的组合：
@@ -165,17 +165,17 @@ kafka-topics.sh --create \
 
 compact 模式运行一个特殊线程叫 Log Cleaner，它的任务是扫描日志，把所有旧的 key 替换掉，只保留每个 key 的最新值。
 
-比如：
+比如生产者按照时间顺序依次向 topic 投递如下消息：
 
-```
+```plaintext
 key=A, value=1
 key=A, value=2
 key=A, value=3
 ```
 
-最终 compact 后只会留下：
+compact 模式下最终只会保留：
 
-```
+```plaintext
 key=A, value=3
 ```
 
@@ -191,7 +191,10 @@ Kafka 不会看到 tombstone 就立即删对应的旧数据。它会先把 tombs
 
 这段“墓碑停留时间”就是 delete.retention.ms，默认一般是 86400000ms（24 小时）。
 
-所以，重要的事情再说一遍，如果不能理解 `--config cleanup.policy=compact` 的含义，建议无脑用 `--config cleanup.policy=delete`。
+|**划重点**|
+|:--------|
+|重要的事情再说一遍，如果不能理解 `--config cleanup.policy=compact` 的含义，建议无脑用 `--config cleanup.policy=delete`|
+
 # 创建 topic
 
 通用的创建 topic 命令参数如下，可根据需要自行指定：
@@ -222,8 +225,7 @@ bin/kafka-topics.sh \
 --replication-factor 3 \
 --config min.insync.replicas=3 \
 --config cleanup.policy=delete \
---config retention.ms=2592000000 \
---config unclean.leader.election.enable=false
+--config retention.ms=2592000000
 ```
 
 输出结果：
@@ -241,6 +243,8 @@ Created topic order.paid. <== topic 创建成功
 
 # 列出所有 topic
 
+如果想要查看 kafka 中有多少 topic，可以使用 `--list` 查看：
+
 ```bash
 $ bin/kafka-topics.sh \
 --bootstrap-server 172.21.11.1:19092,172.21.11.1:29092 \
@@ -250,6 +254,8 @@ order.paid
 ```
 
 # 查看 topic 详细信息
+
+如果想要查看 topic 的详细信息（如分区、副本数、最小同步策略）以及创建 topic 时指定的配置参数，可以使用 `--describe` 查看：
 
 ```bash
 $ bin/kafka-topics.sh \
@@ -265,6 +271,8 @@ Topic: order.paid	TopicId: tVFQoD0UR4CvWrIgLU0bDA	PartitionCount: 3	ReplicationF
 
 # 删除 topic
 
+如果某个 topic 创建错了，可以使用 `--delete` 删除：
+
 ```bash
 $ bin/kafka-topics.sh \
 --bootstrap-server 172.21.11.1:19092,172.21.11.1:29092 \
@@ -272,10 +280,15 @@ $ bin/kafka-topics.sh \
 --topic order.paid
 ```
 
+|**NOTE**|
+|:----------|
+|如果是在生产环境中，千万不要轻易的使用 `--delete`。因此，当你的业务需要使用一个新 topic 时，在创建之前一定要合理的创建分区，同时循命名规范并仔细斟酌并再去创建有业务含义的 topic 名称。一旦创建，就不要轻易的删除。|
+
 # 关于 broker 配置说明
+
 ## 禁用自动创建 topic
 
-如果当前运行的是 cluster 模式，在集群启动之前，需要将所有的选举节点都设置为紧张自动创建 topic。也就是在 `server.properties` 都做如下配置：
+如果当前运行的是 cluster 模式，在集群启动之前，需要将所有的选举节点都设置为禁止自动创建 topic。也就是在 `server.properties` 都做如下配置：
 
 ```properties
 auto.create.topics.enable=false
@@ -283,7 +296,7 @@ auto.create.topics.enable=false
 
 所谓的选举节点，就是 `server.properties` 的指定 roles 为 controller 的节点（下面两种配置都表示 broker 是选举节点）：
 
-```
+```properties
 process.roles=controller
 process.roles=broker,controller
 ```
@@ -301,5 +314,6 @@ process.roles=broker,controller
 ```properties
 min.insync.replicas=<num>
 ```
+
 当然，如果是 cluster 模式，需要在所有的 broker 节点都设置。在 broker 级别设置，主要是增加一层保险而已。
 
