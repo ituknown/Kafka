@@ -8,6 +8,13 @@ kafka-topics.sh --bootstrap-server [<broker:port>...]
 
 指定 broker 服务地址。如果当前使用的是集群环境，只需要配置集群中任意一个可达的节点即可。不过为了防止意外情况，还是推荐指定多个。
 
+示例：
+
+```bash
+bin/kafka-topics.sh \
+    --bootstrap-server 172.21.11.1:19092,172.21.11.1:29092
+```
+
 ## --topic <topic_name>
 
 ```bash
@@ -42,7 +49,7 @@ kafka-topics.sh \
 
 replication-factor 用于指定分区同步副本数。当 topic 根据消息 key 路由将消息写入某个分区，该分区就是 Leader 副本。该配置用于指定分区总副本（备份）数，除了 Leader 副本，其他都是 Follower 副本。生产者将消息投递到 topic 后，首先会将消息写入 Leader 副本，之后再同步到 Follower 副本。
 
-这样能保证消息的高可用，就是其中一个副本磁盘损坏，也能使用其他副本恢复数据。
+这样能保证消息的高可用，即使 Leader 副本磁盘损坏，也能使用其他 Follower 副本代替。
 
 **生产环境中建议至少副本 3 个副本。**
 
