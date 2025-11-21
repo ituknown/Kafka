@@ -196,6 +196,8 @@ Kafka 不会看到 tombstone 就立即删对应的旧数据。它会先把 tombs
 
 通用的创建 topic 命令参数如下，可根据需要自行指定：
 
+了解过前面 topic 的主要配置之后，再去创建 topic 就得心应手了，通用的创建命令如下，可根据需要自行指定：
+
 ```bash
 kafka-topics.sh \
 --bootstrap-server [<broker:port>...] \
@@ -206,44 +208,10 @@ kafka-topics.sh \
 --config min.insync.replicas=<num>     # 消息最小同步分区副本数, 保证高可用, 消息至少同步指定个副本, 才认为生产者消息投递 topic 成功, 建议至少 2 个
 --config retention.ms=604800000 \      # 日志保留时长(7天), -1 表示永久保留
 --config segment.bytes=1073741824      # 单日志分段最大大小(1GB)
---config cleanup.policy=delete \       # 日志处理策略, 根据需求选择 delete 或 compact
---config unclean.leader.election.enable=false  # 禁止不完整副本成为Leader
+--config cleanup.policy=delete         # 日志处理策略, 根据需求选择 delete 或 compact
 ```
 
-下面是一些不同场景的推荐设置。
-
-- **常规业务（大多数业务）：**
-
-```bash
-kafka-topics.sh --create \
-    --topic user-activities \
-    --partitions 3 \
-    --replication-factor 3 \
-    --config min.insync.replicas=2
-```
-
--  **关键数据（如金融、交易类），对数据一致性要求极高的场景：**
-
-```bash
-kafka-topics.sh --create \
-    --topic financial-transactions \
-    --partitions 16 \
-    --replication-factor 3 \
-    --config min.insync.replicas=2 \
-    --config cleanup.policy=compact \
-    --config retention.ms=-1  # 永久保留
-```
-
-- **日志、监控类等：**
-
-```bash
-kafka-topics.sh --create \
-    --topic application-logs \
-    --partitions 6 \
-    --replication-factor 2 \      # 可以接受2副本
-    --config min.insync.replicas=1 \
-    --config retention.ms=86400000  # 保留1天
-```
+示例：
 
 ```bash
 bin/kafka-topics.sh \
@@ -304,8 +272,8 @@ $ bin/kafka-topics.sh \
 --topic order.paid
 ```
 
-
-# 禁用自动创建 topic
+# 关于 broker 配置说明
+## 禁用自动创建 topic
 
 如果当前运行的是 cluster 模式，在集群启动之前，需要将所有的选举节点都设置为紧张自动创建 topic。也就是在 `server.properties` 都做如下配置：
 
@@ -322,7 +290,7 @@ process.roles=broker,controller
 
 如果是 standalone 模式，只需要在 `server.properties` 中添加该配置即可。
 
-# broker 设置副本默认策略
+## broker 设置副本默认策略
 
 在创建 topic 时，为了保证高可用，通常会设置多个消息副本（`--replication-factor <num>`），也就是说消息写入 Leader 之后会继续将消息同步到其他副本。默认情况下，消息写入 Leader 副本成功之后就认为生产者将消息投递 topic 成功了。
 
